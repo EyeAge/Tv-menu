@@ -25,7 +25,7 @@
 - 着色器里的常数照抄 `.reference/shaders/*.wgsl`，不要"改进"。浮点一律 `highp`。
 - 直接提交到 `main`，小步提交。提交信息英文，Conventional Commits，结尾加一行 `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`。
 - README 英文；`docs/notes/` 中文。
-- 桌面 Chrome、Safari、Firefox 最新版。设备像素比上限取 2。
+- 桌面 Chrome、Safari、Firefox 最新版。WebGL 绘图缓冲固定为 1280×720，与设备像素比无关（实施中改动，原为设备像素比上限取 2）。
 
 ## Review Focus
 
@@ -956,7 +956,7 @@ Expected: FAIL，找不到 `./webgl`。
 
 - 着色器用 `RawShaderMaterial`，`glslVersion: THREE.GLSL3`，源码用 Vite 的 `?raw` 导入后与 `common.glsl` 拼接。
 - `createPrints` 对每个应用渲染一次全屏三角形到自己的渲染目标，之后不再重画。
-- `SceneRenderer` 构造时创建 `WebGLRenderer({ canvas, alpha: false, antialias: true })`，关闭色彩管理，生成印花。本任务的 `render` 先只把场景清成黑色。
+- `SceneRenderer` 构造时创建 `WebGLRenderer({ canvas, alpha: false, antialias: false })`（实施中改动，原为 `antialias: true`），关闭色彩管理，生成印花。本任务的 `render` 先只把场景清成黑色。
 - URL 带 `debug=prints` 时，`render` 改为把 10 张印花按 5×2 网格画到屏幕上，每张按卡片正面的取景方式采样：原作 uv `u*0.62 + 0.2`。用 `copy.frag.glsl` 实现。
 - `App.tsx`：`supportsWebGL2` 为 false 时不创建渲染器，在舞台中央显示 `WebGL2 is not available`。为 true 时创建 `SceneRenderer`，在 `onFrame` 里调用 `render`，舞台尺寸或设备像素比变化时调用 `resize`。
 
