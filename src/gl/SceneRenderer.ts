@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { AppEntry } from '../config/content';
 import { SCENE } from '../config/scene';
 import type { SceneState } from '../core/state';
+import { BackgroundPass } from './background';
 import { createPrints } from './prints';
 import copyFrag from './shaders/copy.frag.glsl?raw';
 import { FullscreenPass } from './webgl';
@@ -21,6 +22,10 @@ function printsDebugRequested(): boolean {
 export class SceneRenderer {
   readonly prints: THREE.WebGLRenderTarget[];
   private readonly renderer: THREE.WebGLRenderer;
+  private readonly background: BackgroundPass;
+  /** Stretches the quarter-resolution background over the whole drawing buffer. */
+  private readonly backgroundBlit: FullscreenPass;
+  /** Draws a print framed like a card face, for `?debug=prints`. */
   private readonly copy: FullscreenPass;
   private readonly copyTex: THREE.IUniform<THREE.Texture | null> = { value: null };
   private readonly showPrints = printsDebugRequested();
@@ -35,6 +40,12 @@ export class SceneRenderer {
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 1);
     this.prints = createPrints(this.renderer, apps);
+    this.background = new BackgroundPass(this.prints, apps);
+    this.backgroundBlit = new FullscreenPass(copyFrag, {
+      uTex: { value: this.background.texture },
+      uUvScale: { value: new THREE.Vector2(1, 1) },
+      uUvOffset: { value: new THREE.Vector2(0, 0) },
+    });
     this.copy = new FullscreenPass(copyFrag, {
       uTex: this.copyTex,
       uUvScale: { value: new THREE.Vector2(CARD_FACE_UV_SCALE, CARD_FACE_UV_SCALE) },
@@ -51,20 +62,28 @@ export class SceneRenderer {
     this.width = Math.max(1, Math.round(cssWidth * ratio));
     this.height = Math.max(1, Math.round(cssHeight * ratio));
     this.renderer.setSize(this.width, this.height, false);
+    this.background.resize(this.width, this.height);
   }
 
-  // The scene passes that read the state arrive in later tasks.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   render(s: SceneState): void {
     const r = this.renderer;
+    if (this.showPrints) {
+      r.setRenderTarget(null);
+      r.setViewport(0, 0, this.width, this.height);
+      r.clear();
+      this.drawPrintGrid();
+      return;
+    }
+    this.background.render(r, s);
     r.setRenderTarget(null);
     r.setViewport(0, 0, this.width, this.height);
-    r.clear();
-    if (this.showPrints) this.drawPrintGrid();
+    this.backgroundBlit.render(r);
   }
 
   dispose(): void {
     for (const print of this.prints) print.dispose();
+    this.background.dispose();
+    this.backgroundBlit.dispose();
     this.copy.dispose();
     this.renderer.dispose();
   }
