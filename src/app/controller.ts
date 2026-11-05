@@ -74,6 +74,25 @@ export class SceneController {
     };
   }
 
+  /**
+   * Recomputes the text from the current state and notifies text subscribers when it changed.
+   * Call after writing to `state` directly, as the debug handle's `patch` does.
+   */
+  refreshText(): void {
+    const next = this.computeText();
+    const prev = this.text;
+    if (
+      next.title === prev.title &&
+      next.sub === prev.sub &&
+      next.counter === prev.counter &&
+      next.print === prev.print
+    ) {
+      return;
+    }
+    this.text = next;
+    for (const fn of this.textListeners) fn();
+  }
+
   private hit(x: number, y: number) {
     return hitTest(this.state, x, y, this.apps.length, this.inputs.length);
   }
@@ -87,20 +106,5 @@ export class SceneController {
     if (s.row === 0) return { title: app.name, sub: app.sub, counter, print };
     const name = this.inputs[s.inputSel]!;
     return { title: name, sub: name, counter, print };
-  }
-
-  private refreshText(): void {
-    const next = this.computeText();
-    const prev = this.text;
-    if (
-      next.title === prev.title &&
-      next.sub === prev.sub &&
-      next.counter === prev.counter &&
-      next.print === prev.print
-    ) {
-      return;
-    }
-    this.text = next;
-    for (const fn of this.textListeners) fn();
   }
 }

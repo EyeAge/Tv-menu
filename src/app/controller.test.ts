@@ -50,3 +50,16 @@ test('pointer events go through hit testing; frame listeners run on tick', () =>
   c.tick(1 / 60);
   expect(frame).toHaveBeenCalledTimes(1);
 });
+
+test('refreshText picks up state written from outside and notifies only on change', () => {
+  const c = new SceneController();
+  const fn = vi.fn();
+  c.subscribeText(fn);
+  c.refreshText();
+  expect(fn).not.toHaveBeenCalled();
+  c.state.selected = 3;
+  expect(c.getText().title).toBe('Netflix');
+  c.refreshText();
+  expect(c.getText().title).toBe('Disney+');
+  expect(fn).toHaveBeenCalledTimes(1);
+});

@@ -10,7 +10,7 @@ export interface TvMenuDebug {
   /** Stop advancing the scene with real time; the frame loop keeps running. */
   pause(): void;
   resume(): void;
-  /** Write fields into the state and redraw once. */
+  /** Write fields into the state, refresh the text and redraw once. */
   patch(partial: Partial<SceneState>): void;
   /**
    * True when the background queue is idle, every eased value is at its target and the card
@@ -90,6 +90,7 @@ export function installDebug(controller: SceneController, search: string): () =>
     },
     patch: (partial) => {
       Object.assign(controller.state, partial);
+      controller.refreshText();
       controller.tick(0);
     },
     settled: () => isSettled(controller.state),

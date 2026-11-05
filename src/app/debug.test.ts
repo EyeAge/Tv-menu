@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createState } from '../core/state';
-import { FrameStats, debugRequested, isSettled } from './debug';
+import { SceneController } from './controller';
+import { FrameStats, debugRequested, installDebug, isSettled } from './debug';
 
 describe('isSettled', () => {
   const rested = () => ({ ...createState(), sweep: 2.2 });
@@ -45,5 +46,29 @@ describe('FrameStats', () => {
     expect(stats.record(11000, 11001)).toBe(
       'avg frame time 50.00 ms, render call 1.00 ms, 100 frames',
     );
+  });
+});
+
+describe('installDebug', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('patch refreshes the text before it redraws', () => {
+    vi.stubGlobal('window', {});
+    const c = new SceneController({ random: () => 0.5 });
+    const dispose = installDebug(c, '?debug=1');
+    const onText = vi.fn();
+    c.subscribeText(onText);
+    const titlesSeenByFrame: string[] = [];
+    c.onFrame(() => titlesSeenByFrame.push(c.getText().title));
+
+    window.__tvmenu!.patch({ selected: 3, selectedF: 3 });
+
+    expect(c.getText().title).toBe('Disney+');
+    expect(onText).toHaveBeenCalledTimes(1);
+    expect(titlesSeenByFrame).toEqual(['Disney+']);
+    dispose();
+    expect(window.__tvmenu).toBeUndefined();
   });
 });
