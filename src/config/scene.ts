@@ -1,6 +1,8 @@
 export const SCENE = {
   stageW: 1280,
   stageH: 720,
+  /** Drawing buffer pixels per stage pixel. The original draws at artboard resolution: 1. */
+  renderScale: 1,
   visibleCards: 5,
   halfHeightAtOrigin: 1.607695,
   cameraZ: 6,

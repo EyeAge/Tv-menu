@@ -86,7 +86,7 @@ export class BackgroundPass {
     this.pass = new FullscreenPass(backgroundFrag, this.uniforms);
   }
 
-  /** Sizes the target to a quarter of the drawing buffer (in device pixels). */
+  /** Sizes the target to a quarter of the drawing buffer (in buffer pixels). */
   resize(bufferW: number, bufferH: number): void {
     const { width, height } = backgroundSize(bufferW, bufferH);
     this.target.setSize(width, height);

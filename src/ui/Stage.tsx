@@ -19,7 +19,7 @@ function windowFit(): Fit {
 export default function Stage({ controller, fitRef, children }: StageProps) {
   const [fit, setFit] = useState<Fit>(windowFit);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const webgl = useSceneRenderer(controller, canvasRef, fit);
+  const webgl = useSceneRenderer(controller, canvasRef);
 
   useLayoutEffect(() => {
     const onResize = () => setFit(windowFit());

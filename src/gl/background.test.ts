@@ -5,8 +5,8 @@ import { createState, type SceneState } from '../core/state';
 import { backgroundParams, backgroundSize } from './background';
 
 test('background target is a quarter of the drawing buffer, at least one pixel', () => {
-  expect(backgroundSize(1440, 810)).toEqual({ width: 360, height: 202 });
-  expect(backgroundSize(2880, 1620)).toEqual({ width: 720, height: 405 });
+  expect(backgroundSize(1280, 720)).toEqual({ width: 320, height: 180 });
+  expect(backgroundSize(1283, 723)).toEqual({ width: 320, height: 180 });
   expect(backgroundSize(3, 2)).toEqual({ width: 1, height: 1 });
 });
 

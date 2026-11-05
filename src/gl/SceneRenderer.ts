@@ -16,6 +16,19 @@ const CARD_FACE_UV_OFFSET = 0.2;
 /** `?debug=prints` layout, in stage pixels: one card-shaped cell per app, in app order. */
 const PRINT_GRID = { cols: 5, cellW: 232, gap: 16 };
 
+/**
+ * Size of the drawing buffer, fixed whatever the window size or device pixel ratio. The original
+ * draws its canvases at artboard resolution (1280×720 times a scale of 1) and lets the runtime
+ * scale them to the window; here the stage layout scales the canvas and the browser upscales it
+ * with its default bilinear filtering. `SCENE.renderScale` is the single knob to change this.
+ */
+export function renderBufferSize(): { width: number; height: number } {
+  return {
+    width: Math.round(SCENE.stageW * SCENE.renderScale),
+    height: Math.round(SCENE.stageH * SCENE.renderScale),
+  };
+}
+
 function printsDebugRequested(): boolean {
   return new URLSearchParams(window.location.search).get('debug') === 'prints';
 }
@@ -33,8 +46,8 @@ export class SceneRenderer {
   private readonly copy: FullscreenPass;
   private readonly copyTex: THREE.IUniform<THREE.Texture | null> = { value: null };
   private readonly showPrints = printsDebugRequested();
-  private width = 1;
-  private height = 1;
+  private readonly width: number;
+  private readonly height: number;
 
   constructor(canvas: HTMLCanvasElement, apps: readonly AppEntry[]) {
     // Shader output goes to the screen unchanged.
@@ -43,8 +56,14 @@ export class SceneRenderer {
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 1);
+    // Fixed buffer size (see renderBufferSize); the canvas's CSS size comes from the stage layout.
+    const size = renderBufferSize();
+    this.width = size.width;
+    this.height = size.height;
+    this.renderer.setSize(this.width, this.height, false);
     this.prints = createPrints(this.renderer, apps);
     this.background = new BackgroundPass(this.prints, apps);
+    this.background.resize(this.width, this.height);
     this.backgroundBlit = new FullscreenPass(copyFrag, {
       uTex: { value: this.background.texture },
       uUvScale: { value: new THREE.Vector2(1, 1) },
@@ -56,18 +75,6 @@ export class SceneRenderer {
       uUvScale: { value: new THREE.Vector2(CARD_FACE_UV_SCALE, CARD_FACE_UV_SCALE) },
       uUvOffset: { value: new THREE.Vector2(CARD_FACE_UV_OFFSET, CARD_FACE_UV_OFFSET) },
     });
-  }
-
-  /**
-   * Sizes the drawing buffer to the on-screen stage size times the device pixel ratio
-   * (capped at 2). Three's pixel ratio stays 1 and the canvas's CSS size is left alone.
-   */
-  resize(cssWidth: number, cssHeight: number, dpr: number): void {
-    const ratio = Math.min(dpr, 2);
-    this.width = Math.max(1, Math.round(cssWidth * ratio));
-    this.height = Math.max(1, Math.round(cssHeight * ratio));
-    this.renderer.setSize(this.width, this.height, false);
-    this.background.resize(this.width, this.height);
   }
 
   /** Background, then the cards and their reflections, then grain; or the `?debug=prints` grid. */

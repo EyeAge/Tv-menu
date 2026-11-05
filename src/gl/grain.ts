@@ -16,7 +16,7 @@ export class GrainPass {
     setPremultipliedBlending(this.pass.material);
   }
 
-  /** Blends over the current target; the buffer size is in device pixels. */
+  /** Blends over the current target; the size is the drawing buffer's, in pixels. */
   render(renderer: THREE.WebGLRenderer, time: number, bufferW: number, bufferH: number): void {
     this.uniforms.uTime.value = time;
     this.uniforms.uRes.value.set(bufferW, bufferH);
