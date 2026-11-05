@@ -1,0 +1,6 @@
+dist
+compare
+.reference
+.superpowers
+pnpm-lock.yaml
+docs/superpowers
