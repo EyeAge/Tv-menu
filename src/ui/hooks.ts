@@ -6,15 +6,19 @@ import { clientToStage, type Fit } from '../core/layout';
 import { SceneRenderer } from '../gl/SceneRenderer';
 import { supportsWebGL2 } from '../gl/webgl';
 
-/** Drives the controller with real frame times. */
+/**
+ * Drives the controller with real frame times. The next frame is requested before the tick runs,
+ * so a frame listener that throws does not stop the loop.
+ */
 export function useFrameLoop(controller: SceneController): void {
   useEffect(() => {
     let id = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      if (controller.realtime) controller.tick((now - last) / 1000);
-      last = now;
       id = requestAnimationFrame(loop);
+      const dt = (now - last) / 1000;
+      last = now;
+      if (controller.realtime) controller.tick(dt);
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
