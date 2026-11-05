@@ -1,7 +1,10 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { SceneController } from '../app/controller';
 import { mapKey } from '../app/input';
+import { SCENE } from '../config/scene';
 import { clientToStage, type Fit } from '../core/layout';
+import { SceneRenderer } from '../gl/SceneRenderer';
+import { supportsWebGL2 } from '../gl/webgl';
 
 /** Drives the controller with real frame times. */
 export function useFrameLoop(controller: SceneController): void {
@@ -49,4 +52,60 @@ export function usePointer(controller: SceneController, fitRef: RefObject<Fit>):
       window.removeEventListener('pointerdown', onDown);
     };
   }, [controller, fitRef]);
+}
+
+function probeWebGL2(): boolean {
+  const probe = document.createElement('canvas');
+  return supportsWebGL2((id) => probe.getContext(id));
+}
+
+/** The device pixel ratio, updated when it changes (browser zoom, moving to another display). */
+function useDevicePixelRatio(): number {
+  const [dpr, setDpr] = useState(() => window.devicePixelRatio);
+  useEffect(() => {
+    const query = window.matchMedia(`(resolution: ${dpr}dppx)`);
+    const onChange = () => setDpr(window.devicePixelRatio);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [dpr]);
+  return dpr;
+}
+
+/**
+ * Creates the WebGL renderer on the stage canvas, sizes its drawing buffer to the on-screen
+ * stage and redraws after every controller tick. Returns false when WebGL2 is unavailable,
+ * in which case no renderer is created.
+ */
+export function useSceneRenderer(
+  controller: SceneController,
+  canvasRef: RefObject<HTMLCanvasElement | null>,
+  fit: Fit,
+): boolean {
+  const [supported] = useState(probeWebGL2);
+  const dpr = useDevicePixelRatio();
+  const rendererRef = useRef<SceneRenderer | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!supported || !canvas) return;
+    const renderer = new SceneRenderer(canvas, controller.apps);
+    rendererRef.current = renderer;
+    const unsubscribe = controller.onFrame((s) => renderer.render(s));
+    return () => {
+      unsubscribe();
+      rendererRef.current = null;
+      renderer.dispose();
+    };
+  }, [controller, canvasRef, supported]);
+
+  // Declared after the effect above, so on mount it runs once the renderer exists.
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    if (!renderer) return;
+    renderer.resize(SCENE.stageW * fit.scale, SCENE.stageH * fit.scale, dpr);
+    // Resizing clears the drawing buffer; redraw now in case the frame loop is paused.
+    renderer.render(controller.state);
+  }, [controller, fit, dpr]);
+
+  return supported;
 }

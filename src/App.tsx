@@ -16,7 +16,7 @@ export default function App() {
   useEffect(() => installDebug(controller, window.location.search), [controller]);
 
   return (
-    <Stage fitRef={fitRef}>
+    <Stage controller={controller} fitRef={fitRef}>
       <TextLayer controller={controller} />
     </Stage>
   );
