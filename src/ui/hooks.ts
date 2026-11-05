@@ -66,33 +66,66 @@ function probeWebGL2(): boolean {
 /**
  * Creates the WebGL renderer on the stage canvas (its drawing buffer has a fixed size, see
  * `renderBufferSize`), draws once and then after every controller tick. With `?debug=1` it logs
- * the average frame time to the console every 5 seconds. Returns false when WebGL2 is
- * unavailable, in which case no renderer is created.
+ * the average frame time to the console every 5 seconds. When the WebGL context is lost it stops
+ * drawing and drops the renderer; when the context is restored it builds a new one, because every
+ * GPU resource, the prints included, is gone. Returns false when WebGL2 is unavailable or the
+ * renderer could not be created; in that case nothing is drawn and nothing throws.
  */
 export function useSceneRenderer(
   controller: SceneController,
   canvasRef: RefObject<HTMLCanvasElement | null>,
 ): boolean {
-  const [supported] = useState(probeWebGL2);
+  const [available, setAvailable] = useState(probeWebGL2);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!supported || !canvas) return;
-    const renderer = new SceneRenderer(canvas, controller.apps);
-    // Draw now, in case the frame loop is paused.
-    renderer.render(controller.state);
+    if (!available || !canvas) return;
     const stats = debugRequested(window.location.search) ? new FrameStats() : null;
-    const unsubscribe = controller.onFrame((s) => {
-      const start = performance.now();
-      renderer.render(s);
-      const line = stats?.record(start, performance.now());
-      if (line) console.info(`[tvmenu] ${line}`);
-    });
-    return () => {
-      unsubscribe();
-      renderer.dispose();
-    };
-  }, [controller, canvasRef, supported]);
+    let renderer: SceneRenderer | null = null;
+    let unsubscribe: (() => void) | null = null;
 
-  return supported;
+    const build = () => {
+      let created: SceneRenderer | null = null;
+      try {
+        created = new SceneRenderer(canvas, controller.apps);
+        // Draw now, in case the frame loop is paused.
+        created.render(controller.state);
+      } catch (err) {
+        created?.dispose();
+        console.error('[tvmenu] could not create the WebGL renderer:', err);
+        setAvailable(false);
+        return;
+      }
+      const r = created;
+      renderer = r;
+      unsubscribe = controller.onFrame((s) => {
+        const start = performance.now();
+        r.render(s);
+        const line = stats?.record(start, performance.now());
+        if (line) console.info(`[tvmenu] ${line}`);
+      });
+    };
+    const drop = () => {
+      unsubscribe?.();
+      unsubscribe = null;
+      renderer?.dispose();
+      renderer = null;
+    };
+    const onContextLost = (e: Event) => {
+      // Without preventDefault the browser never restores the context.
+      e.preventDefault();
+      drop();
+    };
+
+    canvas.addEventListener('webglcontextlost', onContextLost);
+    canvas.addEventListener('webglcontextrestored', build);
+    build();
+    return () => {
+      canvas.removeEventListener('webglcontextlost', onContextLost);
+      canvas.removeEventListener('webglcontextrestored', build);
+      drop();
+    };
+  }, [controller, canvasRef, available]);
+
+  return available;
 }
