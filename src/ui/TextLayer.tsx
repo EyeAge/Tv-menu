@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { SceneController } from '../app/controller';
+import { CURRENT_SOURCE, VOLUME } from '../config/content';
 import { SCENE } from '../config/scene';
 import type { SceneState } from '../core/state';
 import { HINT_TEXT, formatClock, formatDate } from '../core/text';
 import CardLabels from './CardLabels';
 import InputsRow from './InputsRow';
 import { useFrame } from './useFrame';
-
-const STATUS_TEXT = 'SMARTCAST   ·   VOL 44';
 
 /** Wall-clock strings, re-checked every second; state only changes when a string does. */
 function useClock(): { clock: string; date: string } {
@@ -30,6 +29,7 @@ export default function TextLayer({ controller }: { controller: SceneController 
   const text = useSyncExternalStore(controller.subscribeText, controller.getText);
   const { clock, date } = useClock();
   const appsLabels = useRef<HTMLDivElement>(null);
+  const status = `${controller.inputs[CURRENT_SOURCE]}   ·   VOL ${VOLUME}`;
 
   const dimAppsLabels = useCallback((s: SceneState) => {
     if (appsLabels.current) {
@@ -44,7 +44,7 @@ export default function TextLayer({ controller }: { controller: SceneController 
       <div className="date mono">{date}</div>
 
       <div className="status-dot" />
-      <div className="status mono">{STATUS_TEXT}</div>
+      <div className="status mono">{status}</div>
       <div className="print mono">{text.print}</div>
 
       <div className="counter mono">{text.counter}</div>

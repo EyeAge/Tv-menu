@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { APPS, INPUTS, rgb01 } from './content';
+import { APPS, CURRENT_SOURCE, CURRENT_SOURCE_TAG, INPUTS, VOLUME, rgb01 } from './content';
 
 test('ten apps and five inputs in the original order', () => {
   expect(APPS.map((a) => a.name)).toEqual([
@@ -41,4 +41,11 @@ test('colors are 0..255 integers and rgb01 normalizes', () => {
   expect(APPS[0]!.glow).toEqual([255, 70, 90]);
   expect(APPS[9]!.colors[2]).toEqual([220, 60, 170]);
   expect(rgb01([255, 0, 51])).toEqual([1, 0, 0.2]);
+});
+
+test('the current source, its tag and the volume shown in the status line', () => {
+  expect(CURRENT_SOURCE).toBe(0);
+  expect(INPUTS[CURRENT_SOURCE]).toBe('SMARTCAST');
+  expect(CURRENT_SOURCE_TAG).toBe('CAST');
+  expect(VOLUME).toBe(44);
 });

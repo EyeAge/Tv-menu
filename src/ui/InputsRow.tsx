@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import type { SceneController } from '../app/controller';
+import { CURRENT_SOURCE, CURRENT_SOURCE_TAG } from '../config/content';
 import { SCENE } from '../config/scene';
 import { pillX } from '../core/layout';
 import type { SceneState } from '../core/state';
@@ -31,14 +32,14 @@ export default function InputsRow({ controller }: { controller: SceneController 
       {controller.inputs.map((name, i) => (
         <div
           key={name}
-          className={i === 0 ? 'input-name input-name-current' : 'input-name'}
+          className={i === CURRENT_SOURCE ? 'input-name input-name-current' : 'input-name'}
           style={{ left: boxLeft(i) }}
         >
           {name}
         </div>
       ))}
-      <div className="input-cast" style={{ left: boxLeft(0) }}>
-        CAST
+      <div className="input-cast" style={{ left: boxLeft(CURRENT_SOURCE) }}>
+        {CURRENT_SOURCE_TAG}
       </div>
     </>
   );

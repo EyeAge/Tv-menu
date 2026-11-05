@@ -1,5 +1,5 @@
-export type RGB = readonly [number, number, number]; // 0..255 整数
-export type PatternKind = 0 | 1 | 2 | 3 | 4; // 圆点、加号、鳞片、竖条、方块
+export type RGB = readonly [number, number, number]; // 0..255 integers
+export type PatternKind = 0 | 1 | 2 | 3 | 4; // dots, plus signs, scales, stripes, squares
 
 export interface AppEntry {
   name: string;
@@ -188,6 +188,15 @@ export const APPS: readonly AppEntry[] = [
 ];
 
 export const INPUTS: readonly string[] = ['SMARTCAST', 'HDMI-1', 'HDMI-2', 'COMP', 'TV'];
+
+/** Index in `INPUTS` of the active source: its chip is marked current and the status line names it. */
+export const CURRENT_SOURCE = 0;
+
+/** Tag shown on the active source's chip. */
+export const CURRENT_SOURCE_TAG = 'CAST';
+
+/** Volume shown in the status line. */
+export const VOLUME = 44;
 
 export function rgb01(c: RGB): [number, number, number] {
   return [c[0] / 255, c[1] / 255, c[2] / 255];

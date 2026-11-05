@@ -69,6 +69,8 @@ Content lives only in `src/config/content.ts`. Scene constants (stage size, came
 
 `INPUTS` is a list of input source names shown in the Inputs row.
 
+`CURRENT_SOURCE` is the index in `INPUTS` of the active source. Its chip is drawn as current and carries the `CURRENT_SOURCE_TAG` tag (`CAST`), and its name starts the status line at the top right. `VOLUME` is the volume shown after it in that line.
+
 ## How it works
 
 Pure logic is in `src/core/` (state, navigation, per-frame advance, layout, text). `src/app/controller.ts` connects input events to that logic. WebGL is in `src/gl/` with shaders in `src/gl/shaders/`, and the DOM text layer is in `src/ui/`. Each frame draws four things, in this order:
