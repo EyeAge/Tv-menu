@@ -9,7 +9,7 @@ export function useFrameLoop(controller: SceneController): void {
     let id = 0;
     let last = performance.now();
     const loop = (now: number) => {
-      controller.tick((now - last) / 1000);
+      if (controller.realtime) controller.tick((now - last) / 1000);
       last = now;
       id = requestAnimationFrame(loop);
     };

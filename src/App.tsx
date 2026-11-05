@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SceneController } from './app/controller';
+import { installDebug } from './app/debug';
 import type { Fit } from './core/layout';
 import Stage from './ui/Stage';
 import TextLayer from './ui/TextLayer';
@@ -12,6 +13,7 @@ export default function App() {
   useFrameLoop(controller);
   useKeyboard(controller);
   usePointer(controller, fitRef);
+  useEffect(() => installDebug(controller, window.location.search), [controller]);
 
   return (
     <Stage fitRef={fitRef}>

@@ -31,6 +31,8 @@
     "preview": "vite preview",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "capture": "node scripts/capture.mjs",
+    "compare": "node scripts/compare-page.mjs"
   }
 }

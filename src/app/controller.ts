@@ -23,6 +23,8 @@ export class SceneController {
   readonly state: SceneState = createState();
   readonly apps: readonly AppEntry[];
   readonly inputs: readonly string[];
+  /** When false the frame loop must not advance the scene with real elapsed time. */
+  realtime = true;
   private readonly random: () => number;
   private text: SceneText;
   private readonly textListeners = new Set<() => void>();
