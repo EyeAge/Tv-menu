@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { SCENE } from '../config/scene';
 import { createState } from './state';
 import {
   PPU,
@@ -108,4 +109,34 @@ test('pointer in the letterbox maps outside the stage and hits nothing (Review F
   const inside = clientToStage(720, 450, fit);
   expect(inside).toEqual({ x: 640, y: 360 });
   expect(clientToStage(10, 10, { scale: 0, left: 0, top: 0 })).toEqual({ x: -1, y: -1 });
+});
+
+test('points outside the stage hit nothing, even over an off-stage card (Ruling 13)', () => {
+  const fit = fitStage(1920, 950);
+  const stageRight = fit.left + SCENE.stageW * fit.scale;
+  const cardHeight = fit.top + 470 * fit.scale;
+
+  // Right bar at card height: card 5 lies beyond the right edge at the initial state.
+  const right = clientToStage(stageRight + 79, cardHeight, fit);
+  expect(right.x).toBeGreaterThan(SCENE.stageW);
+  expect(hitTest(createState(), right.x, right.y, 10, 5)).toEqual({ row: -1, index: 0 });
+
+  // Left bar at card height with the row scrolled: card 0 lies partly beyond the left edge.
+  const scrolled = createState();
+  scrolled.selected = 5;
+  scrolled.selectedF = 5;
+  scrolled.scroll = 1;
+  scrolled.scrollF = 1;
+  const left = clientToStage(fit.left - 79, cardHeight, fit);
+  expect(left.x).toBeLessThan(0);
+  expect(hitTest(scrolled, left.x, left.y, 10, 5)).toEqual({ row: -1, index: 0 });
+  expect(hitTest(scrolled, 0, 470, 10, 5)).toEqual({ row: 0, index: 0 });
+
+  // The visible part of a card that crosses the right edge still hits, the edge included.
+  const atFour = createState();
+  atFour.selected = 4;
+  atFour.selectedF = 4;
+  expect(hitTest(atFour, 1279.5, 474, 10, 5)).toEqual({ row: 0, index: 4 });
+  expect(hitTest(atFour, SCENE.stageW, 474, 10, 5)).toEqual({ row: 0, index: 4 });
+  expect(hitTest(atFour, SCENE.stageW + 0.5, 474, 10, 5)).toEqual({ row: -1, index: 0 });
 });

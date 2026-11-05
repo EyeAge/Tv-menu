@@ -39,7 +39,11 @@ export function cardRect(s: SceneState, index: number): Rect {
   };
 }
 
-/** Returns the first card (lowest index) under the point, else an input, else nothing. */
+/**
+ * Returns the first card (lowest index) under the point, else an input, else nothing. Points
+ * outside the stage rectangle (edges included as inside) hit nothing, so the letterbox bars never
+ * select a card that extends past the stage edge.
+ */
 export function hitTest(
   s: SceneState,
   x: number,
@@ -47,6 +51,7 @@ export function hitTest(
   appCount: number,
   inputCount: number,
 ): Hit {
+  if (!(x >= 0 && x <= W && y >= 0 && y <= H)) return { row: -1, index: 0 };
   for (let i = 0; i < appCount; i++) {
     const r = cardRect(s, i);
     if (Math.abs(x - r.cx) <= r.halfW && Math.abs(y - r.cy) <= r.halfH) {
