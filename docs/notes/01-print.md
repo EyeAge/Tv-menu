@@ -8,7 +8,7 @@
 
 十个应用各有一张。它们长得不同，是因为 `src/config/content.ts` 里每个应用有四个颜色、一种图案类型 `kind`、一个种子 `seed`、一个图案密度 `scale` 和一个墨渍强度 `ink`。着色器本身只有一份。
 
-可以先看一眼全部十张：开发服务器打开 `/?debug=prints`，画布会按应用顺序排出十张印花（见 `src/gl/SceneRenderer.ts` 的 `drawPrintGrid`）。
+可以先看一眼全部十张：开发服务器打开 `/Tv-menu/?debug=prints`，画布会按应用顺序排出十张印花（见 `src/gl/SceneRenderer.ts` 的 `drawPrintGrid`）。
 
 ## 对应的源码
 
@@ -207,6 +207,6 @@ vec2 fragPos = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
 
 改 `src/config/content.ts` 里第一个应用 Netflix 的两个值：`scale: 9` 改成 `scale: 24`，`ink: 0.9` 改成 `ink: 0`。
 
-保存后页面重新加载。再打开 `/?debug=prints`，看第一张：加号图案变得非常细密，原来那些暗色墨渍消失了。第一张卡片和背景也会跟着变，因为它们读同一张纹理。
+保存后页面重新加载。再打开 `/Tv-menu/?debug=prints`，看第一张：加号图案变得非常细密，原来那些暗色墨渍消失了。第一张卡片和背景也会跟着变，因为它们读同一张纹理。
 
 撤销：把两个值改回 `9` 和 `0.9`，或者执行 `git checkout src/config/content.ts`。

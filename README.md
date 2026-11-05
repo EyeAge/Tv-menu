@@ -73,7 +73,7 @@ Content lives only in `src/config/content.ts`. Scene constants (stage size, came
 
 ## How it works
 
-Pure logic is in `src/core/` (state, navigation, per-frame advance, layout, text). `src/app/controller.ts` connects input events to that logic. WebGL is in `src/gl/` with shaders in `src/gl/shaders/`, and the DOM text layer is in `src/ui/`. Each frame draws four things, in this order:
+Pure logic is in `src/core/` (state, navigation, per-frame advance, layout, text). `src/app/controller.ts` connects input events to that logic. WebGL is in `src/gl/` with shaders in `src/gl/shaders/`, and the DOM text layer is in `src/ui/`. The image is built from four layers. The prints are rendered once at startup; the other three are drawn every frame, in this order:
 
 1. **Prints.** Ten textures, one per app, rendered once at 640×400 from layered value noise, thresholded into three color regions with repeating patterns on top. See [docs/notes/01-print.md](docs/notes/01-print.md).
 2. **Background.** Drawn at quarter resolution and scaled up bilinearly. It samples the middle of the current print through a drifting distortion, blurs it, and blends between old and new apps with a noise-masked sweep. See [docs/notes/02-background.md](docs/notes/02-background.md).

@@ -23,7 +23,7 @@
 - 原作的片元坐标和纹理坐标原点在左上、y 向下。移植每个着色器时：片元坐标用 `vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y)`；按原作 uv 采样纹理时用 `texture(tex, vec2(uv.x, 1.0 - uv.y))`。
 - 不做任何色彩空间转换：`THREE.ColorManagement.enabled = false`，`renderer.outputColorSpace = THREE.LinearSRGBColorSpace`，着色器输出什么屏幕就显示什么。
 - 着色器里的常数照抄 `.reference/shaders/*.wgsl`，不要"改进"。浮点一律 `highp`。
-- 直接提交到 `main`，小步提交。提交信息英文，Conventional Commits，结尾加一行 `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`。
+- 直接提交到 `main`，小步提交。提交信息英文，Conventional Commits，结尾加一行 `Co-Authored-By:`，用各子代理自己的系统指令给出的那一行（实施中改动，原为指定的 `Claude Fable 5.1` 一行）。
 - README 英文；`docs/notes/` 中文。
 - 桌面 Chrome、Safari、Firefox 最新版。WebGL 绘图缓冲固定为 1280×720，与设备像素比无关（实施中改动，原为设备像素比上限取 2）。
 
@@ -922,7 +922,7 @@ export function createPrints(renderer: THREE.WebGLRenderer, apps: readonly AppEn
 // SceneRenderer.ts
 export class SceneRenderer {
   constructor(canvas: HTMLCanvasElement, apps: readonly AppEntry[]);
-  resize(cssWidth: number, cssHeight: number, dpr: number): void; // 绘图缓冲固定为 stageW×stageH×renderScale（1280×720），与 css 尺寸和 dpr 无关（实施中改定）
+  // 没有 resize 方法：绘图缓冲在构造时固定为 stageW×stageH×renderScale（1280×720），与 css 尺寸和 dpr 无关（实施中改动，原有 resize(cssWidth, cssHeight, dpr)）
   render(s: SceneState): void;
   dispose(): void;
   readonly prints: THREE.WebGLRenderTarget[];
@@ -958,7 +958,7 @@ Expected: FAIL，找不到 `./webgl`。
 - `createPrints` 对每个应用渲染一次全屏三角形到自己的渲染目标，之后不再重画。
 - `SceneRenderer` 构造时创建 `WebGLRenderer({ canvas, alpha: false, antialias: false })`（实施中改动，原为 `antialias: true`），关闭色彩管理，生成印花。本任务的 `render` 先只把场景清成黑色。
 - URL 带 `debug=prints` 时，`render` 改为把 10 张印花按 5×2 网格画到屏幕上，每张按卡片正面的取景方式采样：原作 uv `u*0.62 + 0.2`。用 `copy.frag.glsl` 实现。
-- `App.tsx`：`supportsWebGL2` 为 false 时不创建渲染器，在舞台中央显示 `WebGL2 is not available`。为 true 时创建 `SceneRenderer`，在 `onFrame` 里调用 `render`，舞台尺寸或设备像素比变化时调用 `resize`。
+- `App.tsx`：`supportsWebGL2` 为 false 时不创建渲染器，在舞台中央显示 `WebGL2 is not available`。为 true 时创建 `SceneRenderer`，在 `onFrame` 里调用 `render`。绘图缓冲尺寸固定，舞台尺寸或设备像素比变化时不用通知渲染器（实施中改动，原为此时调用 `resize`）。
 
 - [ ] **Step 4: 运行测试**
 
