@@ -922,7 +922,7 @@ export function createPrints(renderer: THREE.WebGLRenderer, apps: readonly AppEn
 // SceneRenderer.ts
 export class SceneRenderer {
   constructor(canvas: HTMLCanvasElement, apps: readonly AppEntry[]);
-  resize(cssWidth: number, cssHeight: number, dpr: number): void; // 绘图缓冲 = css 尺寸 × min(dpr, 2)
+  resize(cssWidth: number, cssHeight: number, dpr: number): void; // 绘图缓冲固定为 stageW×stageH×renderScale（1280×720），与 css 尺寸和 dpr 无关（实施中改定）
   render(s: SceneState): void;
   dispose(): void;
   readonly prints: THREE.WebGLRenderTarget[];
