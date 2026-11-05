@@ -52,7 +52,8 @@ export class SceneRenderer {
   constructor(canvas: HTMLCanvasElement, apps: readonly AppEntry[]) {
     // Shader output goes to the screen unchanged.
     THREE.ColorManagement.enabled = false;
-    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: false, antialias: true });
+    // No multisampling: the original renders without it.
+    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: false, antialias: false });
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 1);
