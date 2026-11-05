@@ -1,3 +1,4 @@
+import { SCENE } from '../config/scene';
 import type { SceneState } from '../core/state';
 import type { SceneController } from './controller';
 
@@ -11,7 +12,10 @@ export interface TvMenuDebug {
   resume(): void;
   /** Write fields into the state and redraw once. */
   patch(partial: Partial<SceneState>): void;
-  /** True when the background queue is idle and every eased value is at its target. */
+  /**
+   * True when the background queue is idle, every eased value is at its target and the card
+   * highlight sweep has finished.
+   */
   settled(): boolean;
 }
 
@@ -29,12 +33,47 @@ export function isSettled(s: SceneState): boolean {
     s.bgQueue.length === 0 &&
     Math.abs(s.selectedF - s.selected) < EPS &&
     Math.abs(s.scrollF - s.scroll) < EPS &&
-    Math.abs(s.inputSelF - s.inputSel) < EPS
+    Math.abs(s.inputSelF - s.inputSel) < EPS &&
+    s.sweep >= SCENE.sweepMax
   );
 }
 
 export function debugRequested(search: string): boolean {
   return new URLSearchParams(search).get('debug') === '1';
+}
+
+/** Length of one averaging window of the `?debug=1` frame-time log. */
+export const FRAME_LOG_WINDOW_MS = 5000;
+
+/**
+ * Averages frame times for the `?debug=1` console log. Call `record` once per rendered frame with
+ * the `performance.now()` times around the render call; it returns a summary line each time a
+ * window's worth of frame intervals has elapsed, else null.
+ */
+export class FrameStats {
+  private lastStart: number | null = null;
+  private frames = 0;
+  private intervalMs = 0;
+  private renderMs = 0;
+
+  constructor(private readonly windowMs = FRAME_LOG_WINDOW_MS) {}
+
+  record(start: number, end: number): string | null {
+    const last = this.lastStart;
+    this.lastStart = start;
+    if (last === null) return null;
+    this.frames++;
+    this.intervalMs += start - last;
+    this.renderMs += end - start;
+    if (this.intervalMs < this.windowMs) return null;
+    const line =
+      `avg frame time ${(this.intervalMs / this.frames).toFixed(2)} ms, ` +
+      `render call ${(this.renderMs / this.frames).toFixed(2)} ms, ${this.frames} frames`;
+    this.frames = 0;
+    this.intervalMs = 0;
+    this.renderMs = 0;
+    return line;
+  }
 }
 
 /** Installs the handle when requested; returns a disposer. Call after the frame loop has started. */

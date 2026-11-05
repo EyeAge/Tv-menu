@@ -3,6 +3,8 @@ import type { AppEntry } from '../config/content';
 import { SCENE } from '../config/scene';
 import type { SceneState } from '../core/state';
 import { BackgroundPass } from './background';
+import { CardsPass } from './cards';
+import { GrainPass } from './grain';
 import { createPrints } from './prints';
 import copyFrag from './shaders/copy.frag.glsl?raw';
 import { FullscreenPass } from './webgl';
@@ -25,6 +27,8 @@ export class SceneRenderer {
   private readonly background: BackgroundPass;
   /** Stretches the quarter-resolution background over the whole drawing buffer. */
   private readonly backgroundBlit: FullscreenPass;
+  private readonly cards: CardsPass;
+  private readonly grain = new GrainPass();
   /** Draws a print framed like a card face, for `?debug=prints`. */
   private readonly copy: FullscreenPass;
   private readonly copyTex: THREE.IUniform<THREE.Texture | null> = { value: null };
@@ -46,6 +50,7 @@ export class SceneRenderer {
       uUvScale: { value: new THREE.Vector2(1, 1) },
       uUvOffset: { value: new THREE.Vector2(0, 0) },
     });
+    this.cards = new CardsPass(this.prints, apps);
     this.copy = new FullscreenPass(copyFrag, {
       uTex: this.copyTex,
       uUvScale: { value: new THREE.Vector2(CARD_FACE_UV_SCALE, CARD_FACE_UV_SCALE) },
@@ -65,6 +70,7 @@ export class SceneRenderer {
     this.background.resize(this.width, this.height);
   }
 
+  /** Background, then the cards and their reflections, then grain; or the `?debug=prints` grid. */
   render(s: SceneState): void {
     const r = this.renderer;
     if (this.showPrints) {
@@ -78,12 +84,16 @@ export class SceneRenderer {
     r.setRenderTarget(null);
     r.setViewport(0, 0, this.width, this.height);
     this.backgroundBlit.render(r);
+    this.cards.render(r, s);
+    this.grain.render(r, s.time, this.width, this.height);
   }
 
   dispose(): void {
     for (const print of this.prints) print.dispose();
     this.background.dispose();
     this.backgroundBlit.dispose();
+    this.cards.dispose();
+    this.grain.dispose();
     this.copy.dispose();
     this.renderer.dispose();
   }

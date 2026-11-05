@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { SceneController } from '../app/controller';
+import { FrameStats, debugRequested } from '../app/debug';
 import { mapKey } from '../app/input';
 import { SCENE } from '../config/scene';
 import { clientToStage, type Fit } from '../core/layout';
@@ -73,8 +74,9 @@ function useDevicePixelRatio(): number {
 
 /**
  * Creates the WebGL renderer on the stage canvas, sizes its drawing buffer to the on-screen
- * stage and redraws after every controller tick. Returns false when WebGL2 is unavailable,
- * in which case no renderer is created.
+ * stage and redraws after every controller tick. With `?debug=1` it logs the average frame time
+ * to the console every 5 seconds. Returns false when WebGL2 is unavailable, in which case no
+ * renderer is created.
  */
 export function useSceneRenderer(
   controller: SceneController,
@@ -90,7 +92,13 @@ export function useSceneRenderer(
     if (!supported || !canvas) return;
     const renderer = new SceneRenderer(canvas, controller.apps);
     rendererRef.current = renderer;
-    const unsubscribe = controller.onFrame((s) => renderer.render(s));
+    const stats = debugRequested(window.location.search) ? new FrameStats() : null;
+    const unsubscribe = controller.onFrame((s) => {
+      const start = performance.now();
+      renderer.render(s);
+      const line = stats?.record(start, performance.now());
+      if (line) console.info(`[tvmenu] ${line}`);
+    });
     return () => {
       unsubscribe();
       rendererRef.current = null;

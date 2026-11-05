@@ -11,6 +11,21 @@ export function supportsWebGL2(getContext: (id: 'webgl2') => unknown): boolean {
   }
 }
 
+/**
+ * Blending for shaders that output premultiplied color, as the original's card canvas:
+ * src = One, dst = OneMinusSrcAlpha for both color and alpha.
+ */
+export function setPremultipliedBlending(material: THREE.Material): void {
+  material.transparent = true;
+  material.blending = THREE.CustomBlending;
+  material.blendEquation = THREE.AddEquation;
+  material.blendSrc = THREE.OneFactor;
+  material.blendDst = THREE.OneMinusSrcAlphaFactor;
+  material.blendEquationAlpha = THREE.AddEquation;
+  material.blendSrcAlpha = THREE.OneFactor;
+  material.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+}
+
 /** One full-viewport triangle drawn with `fragmentBody`, which is prefixed with common.glsl. */
 export class FullscreenPass {
   readonly material: THREE.RawShaderMaterial;

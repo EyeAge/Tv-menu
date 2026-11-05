@@ -96,9 +96,10 @@ async function main() {
     }
 
     await press('ArrowUp');
+    // The highlight band in the original's ok-1 screenshot sits where sweep is about 0.92.
     await page.evaluate(() => {
       window.__tvmenu.pause();
-      window.__tvmenu.patch({ sweep: 0.7 });
+      window.__tvmenu.patch({ sweep: 0.92 });
     });
     await shot('ok-1', STAGE_CLIP);
 
@@ -112,6 +113,7 @@ async function main() {
         bgRunning: true,
         bgDir: 1,
         bgSeed: 0.37,
+        sweep: 2.2,
       });
     });
     await shot('transition-mid', STAGE_CLIP);
