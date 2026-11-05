@@ -5,7 +5,12 @@ import { pillX } from '../core/layout';
 import type { SceneState } from '../core/state';
 import { useFrame } from './useFrame';
 
-/** The inputs chips and the sliding selection frame. */
+const boxLeft = (i: number) => SCENE.inputX0 + SCENE.inputPitch * i;
+
+/**
+ * The inputs boxes, the sliding selection frame and the input names, in the original's paint
+ * order: the frame covers the boxes, the names sit on top of both.
+ */
 export default function InputsRow({ controller }: { controller: SceneController }) {
   const pill = useRef<HTMLDivElement>(null);
 
@@ -20,16 +25,21 @@ export default function InputsRow({ controller }: { controller: SceneController 
   return (
     <>
       {controller.inputs.map((name, i) => (
+        <div key={name} className="input-box" style={{ left: boxLeft(i) }} />
+      ))}
+      <div className="input-pill" ref={pill} />
+      {controller.inputs.map((name, i) => (
         <div
           key={name}
-          className="input-chip"
-          style={{ left: SCENE.inputX0 + SCENE.inputPitch * i }}
+          className={i === 0 ? 'input-name input-name-current' : 'input-name'}
+          style={{ left: boxLeft(i) }}
         >
-          {i === 0 && <span className="input-cast">CAST</span>}
           {name}
         </div>
       ))}
-      <div className="input-pill" ref={pill} />
+      <div className="input-cast" style={{ left: boxLeft(0) }}>
+        CAST
+      </div>
     </>
   );
 }

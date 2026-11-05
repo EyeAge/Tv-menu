@@ -29,35 +29,34 @@ function useClock(): { clock: string; date: string } {
 export default function TextLayer({ controller }: { controller: SceneController }) {
   const text = useSyncExternalStore(controller.subscribeText, controller.getText);
   const { clock, date } = useClock();
-  const appsLabel = useRef<HTMLDivElement>(null);
+  const appsLabels = useRef<HTMLDivElement>(null);
 
-  const dimAppsLabel = useCallback((s: SceneState) => {
-    if (appsLabel.current) {
-      appsLabel.current.style.opacity = String(s.row === 0 ? 1 : SCENE.appsDim);
+  const dimAppsLabels = useCallback((s: SceneState) => {
+    if (appsLabels.current) {
+      appsLabels.current.style.opacity = String(s.row === 0 ? 1 : SCENE.appsDim);
     }
   }, []);
-  useFrame(controller, dimAppsLabel);
+  useFrame(controller, dimAppsLabels);
 
   return (
     <div className="text-layer">
       <div className="clock">{clock}</div>
       <div className="date mono">{date}</div>
 
-      <div className="status status-1 mono">
-        <span className="dot" />
-        {STATUS_TEXT}
-      </div>
-      <div className="status status-2 mono">{text.print}</div>
+      <div className="status-dot" />
+      <div className="status mono">{STATUS_TEXT}</div>
+      <div className="print mono">{text.print}</div>
 
       <div className="counter mono">{text.counter}</div>
       <h1 className="title">{text.title}</h1>
       <div className="sub">{text.sub}</div>
       <div className="press">Press OK to open</div>
 
-      <div className="tag tag-apps mono" ref={appsLabel}>
-        APPS
+      {/* The APPS tag and the card names dim together, like the original's AppsLabels group. */}
+      <div className="apps-labels" ref={appsLabels}>
+        <div className="tag tag-apps mono">APPS</div>
+        <CardLabels controller={controller} />
       </div>
-      <CardLabels controller={controller} />
       <div className="tag tag-inputs mono">INPUTS</div>
       <InputsRow controller={controller} />
 
